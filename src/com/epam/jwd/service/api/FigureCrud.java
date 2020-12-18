@@ -8,12 +8,13 @@ import com.epam.jwd.model.FigureType;
 import com.epam.jwd.model.Point;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FigureCrud<T extends Figure> {
-    T create(FigureFactory factory, FigureType type, Point... points) throws FigureException;
-    List<T> multiCreate(FigureFactory factory, int quantity, FigureType type, Point... points) throws FigureException;
+    T create(FigureType type, Point... points) throws FigureException;
+    List<T> multiCreate(int quantity, FigureType type, Point... points) throws FigureException;
     void delete(int index);
-    boolean find(T Figure);
+    T find(int index);
     void update(T newFigure, int index);
-    Figure findById(int index);
+    Optional<T> findById(int index);
 }

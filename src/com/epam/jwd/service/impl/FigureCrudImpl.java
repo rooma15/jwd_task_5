@@ -1,5 +1,6 @@
 package com.epam.jwd.service.impl;
 
+import com.epam.jwd.exception.ConflictOperationsException;
 import com.epam.jwd.exception.FigureCrudException;
 import com.epam.jwd.exception.FigureException;
 import com.epam.jwd.factory.FigureFactory;
@@ -7,29 +8,39 @@ import com.epam.jwd.model.*;
 import com.epam.jwd.service.api.FigureCrud;
 import com.epam.jwd.strategy.SquareFirstStrategy;
 
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
 public class FigureCrudImpl<T extends Figure> implements FigureCrud<T> {
 
     private FigureStorage<T> storage;
+    private final FigureFactory factory;
+
+    {
+        factory = FigureApplicationContext.getFigureApplicationContext().createFigureFactory();
+    }
 
     public void setStorage(FigureStorage<T> storage){
         this.storage = storage;
     }
 
+
     @Override
-    public T create(FigureFactory factory, FigureType type, Point... points) throws FigureException {
+    public T create(FigureType type, Point... points) throws FigureException {
         if(storage == null){
             throw new FigureCrudException("Storage is not set");
         }
-        return (T)factory.createFigure(type, points);
+        T figure = (T)factory.createFigure(type, points);
+        storage.add(figure);
+        return figure;
     }
 
     @Override
-    public List<T> multiCreate(FigureFactory factory, int quantity, FigureType type, Point... points) throws FigureException {
+    public List<T> multiCreate(int quantity, FigureType type, Point... points) throws FigureException {
         if(storage == null){
             throw new FigureCrudException("Storage is not set");
         }
@@ -37,6 +48,7 @@ public class FigureCrudImpl<T extends Figure> implements FigureCrud<T> {
         for(int i = 0; i < quantity; i++) {
             figures.add((T)factory.createFigure(type, points));
         }
+        storage.addAll(figures);
         return figures;
     }
 
@@ -49,11 +61,11 @@ public class FigureCrudImpl<T extends Figure> implements FigureCrud<T> {
     }
 
     @Override
-    public boolean find(T figure) {
+    public T find(int index) {
         if(storage == null){
             throw new FigureCrudException("Storage is not set");
         }
-        return storage.asList().contains(figure);
+        return storage.asList().get(index);
     }
 
     @Override
@@ -61,28 +73,55 @@ public class FigureCrudImpl<T extends Figure> implements FigureCrud<T> {
         if(storage == null){
             throw new FigureCrudException("Storage is not set");
         }
-        storage.asList().set(index, newFigure);
+        if(newFigure != null){
+            storage.asList().set(index, newFigure);
+        }else throw new NullPointerException("New figure can not be null");
     }
 
     @Override
-    public T findById(int index) {if(storage == null){
+    public Optional<T> findById(int id) {
+        if(storage == null){
         throw new FigureCrudException("Storage is not set");
-    }
-
-        return storage.asList().get(index);
+        }
+        for(T figure : storage) {
+            if(figure.getId() == id){
+                return Optional.of(figure);
+            }
+        }
+        return Optional.empty();
     }
 
     public List<T> findByCriteria(FigureCriteria criteria){
         if(storage == null){
             throw new FigureCrudException("Storage is not set");
         }
+
+        if(criteria == null){
+            throw new NullPointerException("Criteria can not be null");
+        }
+
         return storage.asList().stream().filter((s) -> checkCriteria(s, criteria)).collect(Collectors.toList());
     }
 
     private boolean checkCriteria(T figure, FigureCriteria criteria){
         figure.setFigurePropertiesStrategy(SquareFirstStrategy.SQUARE_FIRST_STRATEGY);
-        return figure.getFigureColor() == criteria.getFigureColor() &&
-                figure.getType().equals(criteria.getFigureType().toString()) &&
-                figure.execute() > criteria.getBottomSquareLimit();
+        List<Boolean> booleanList = new ArrayList<>();
+        criteria.getBottomSquareLimit().ifPresent((limit) -> booleanList.add(limit < figure.execute()));
+        criteria.getFigureType().ifPresent((figureType) -> booleanList.add(figureType == figure.getType()));
+        criteria.getFigureColor().ifPresent((figureColor) -> booleanList.add(figureColor == figure.getFigureColor()));
+        criteria.getFigureId().ifPresent((figureId) -> booleanList.add(figureId.equals(figure.getId())));
+        criteria.getRangId().ifPresent((range) -> {
+            if(criteria.getFigureId().isEmpty()){
+                booleanList.add(figure.getId() >= range[0] && figure.getId() <= range[1]);
+            }else{
+                throw new ConflictOperationsException("There is conflict between setFigureId() and setIdRange()");
+            }
+        });
+        for(Boolean concl : booleanList) {
+            if(!concl){
+                return false;
+            }
+        }
+        return true;
     }
 }
