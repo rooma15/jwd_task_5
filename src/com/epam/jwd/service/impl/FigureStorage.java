@@ -12,14 +12,26 @@ public class FigureStorage<T extends Figure> implements Storage<T>, Iterable<T>{
     private final ArrayList<T> storage = new ArrayList<>();
 
 
+
     @Override
     public final void add(T figure) {
-        storage.add((T)figure);
+        for(T item : storage) {
+            if(item.getId() != figure.getId()){
+                storage.add(figure);
+            }
+        }
     }
 
     @Override
     public final void addAll(List<T> figures) {
-        storage.addAll(figures);
+        for(T figure : figures) {
+            for(T storageFigure : storage) {
+                if(storageFigure.getId() == figure.getId()){
+                    break;
+                }
+            }
+            storage.add(figure);
+        }
     }
 
     @Override
@@ -27,13 +39,20 @@ public class FigureStorage<T extends Figure> implements Storage<T>, Iterable<T>{
         return storage;
     }
 
+    @Override
+    public void insert(T figure, int index) {
+        if(figure == null){
+            throw new NullPointerException("figure can not be null");
+        }
+        storage.add(index, figure);
+    }
 
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder("");
         int count = 1;
         for(T figure : storage) {
-            str.append(count + ": " + figure.toString() + "\n");
+            str.append(count).append(": ").append(figure.toString()).append("\n");
             count++;
         }
         return str.toString();
@@ -41,6 +60,6 @@ public class FigureStorage<T extends Figure> implements Storage<T>, Iterable<T>{
 
     @Override
     public Iterator<T> iterator() {
-        return storage.iterator() ;
+        return storage.iterator();
     }
 }
