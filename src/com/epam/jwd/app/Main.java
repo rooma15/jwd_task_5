@@ -1,6 +1,6 @@
 package com.epam.jwd.app;
 
-import com.epam.jwd.CriteriaBuilder.CriteriaBuilder;
+
 import com.epam.jwd.service.impl.FigureStorage;
 import com.epam.jwd.exception.FigureException;
 import com.epam.jwd.factory.FigureFactory;
@@ -11,6 +11,7 @@ import com.epam.jwd.model.Point;
 import com.epam.jwd.service.impl.FigureCrudImpl;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class Main {
@@ -34,7 +35,7 @@ public class Main {
         figureCrud.setStorage(storage);
 
         try {
-                storage.addAll(figureCrud.multiCreate(factory, 3, FigureType.Triangle, points));
+            figureCrud.multiCreate(3, FigureType.Triangle, points);
         } catch (FigureException e) {
             System.out.println(e.getMessage());
         }
@@ -42,9 +43,12 @@ public class Main {
         System.out.println("before updating element:");
         System.out.println(storage);
 
+
+
         try {
-            figureCrud.update(figureCrud.create(factory, FigureType.Triangle, points2), 1);
-            figureCrud.findById(1).setFigureColor(Color.RED);
+            figureCrud.update((Triangle) factory.createFigure(FigureType.Triangle, points2), 1);
+            Optional<Triangle> opt = figureCrud.findById(1);
+            opt.ifPresent(triangle -> triangle.setFigureColor(Color.RED));
         } catch (FigureException e) {
             System.out.println(e.getMessage());
         }
@@ -52,12 +56,12 @@ public class Main {
         System.out.println("after updating element:");
         System.out.println(storage);
 
-        CriteriaBuilder builder = new CriteriaBuilder();
-        builder.setFigureType(FigureType.Triangle).setFigureColor(Color.RED).setBottomSquareLimit(0);
+        FigureCriteria.CriteriaBuilder builder = new FigureCriteria.CriteriaBuilder();
+        builder.setFigureType(FigureType.Triangle).setBottomSquareLimit(0).setIdRange(1, 3);
         FigureCriteria criteria = builder.getCriteria();
 
 
-        System.out.println("All red triangles:");
+        System.out.println("All sorted triangles:");
         List<Triangle> redTriangles = figureCrud.findByCriteria(criteria);
         for(Triangle triangle : redTriangles) {
             System.out.println(triangle);
