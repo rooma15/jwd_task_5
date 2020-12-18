@@ -31,6 +31,9 @@ public class FigurePostProcessorStorage implements PostProcessorStorage, Iterabl
 
     @Override
     public void addProcessor(FigurePostProcessor postProcessor) throws ProcessorStorageException {
+        if(postProcessor == null){
+            throw new NullPointerException("postProcessor cannot be null");
+        }
         if(!postProcessors.contains(postProcessor)){
             postProcessors.add(postProcessor);
             amountOfProcessors++;

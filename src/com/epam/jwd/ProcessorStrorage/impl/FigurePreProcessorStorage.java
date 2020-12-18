@@ -31,6 +31,9 @@ public class FigurePreProcessorStorage implements PreProcessorStorage, Iterable<
 
     @Override
     public void addProcessor(FigurePreProcessor preProcessor) throws ProcessorStorageException {
+        if(preProcessor == null){
+            throw new NullPointerException("preProcessor cannot be null");
+        }
         if(!preProcessors.contains(preProcessor)){
             preProcessors.add(preProcessor);
             amountOfProcessors++;
