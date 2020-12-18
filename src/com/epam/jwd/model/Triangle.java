@@ -32,19 +32,20 @@ public class Triangle extends Figure {
     }
 
     @Override
-    public String getType() {
-        return "Triangle";
+    public FigureType getType() {
+        return FigureType.Triangle;
     }
 
     @Override
     public String toString() {
-        return String.format("{{%1$d, %2$d}, {%3$d, %4$d}, {%5$d, %6$d}}, Color = %7$s",
+        return String.format("{{%1$d, %2$d}, {%3$d, %4$d}, {%5$d, %6$d}}, Color = %7$s, id = %8$d",
                 points[0].getX(),
                 points[0].getY(),
                 points[1].getX(),
                 points[1].getY(),
                 points[2].getX(),
                 points[2].getY(),
-                getFigureColor());
+                getFigureColor(),
+                id);
     }
 }

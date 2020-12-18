@@ -42,8 +42,8 @@ public class Square extends Figure {
     }
 
     @Override
-    public String getType() {
-        return "Square";
+    public FigureType getType() {
+        return FigureType.Square;
     }
 
     @Override

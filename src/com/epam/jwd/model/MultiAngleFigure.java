@@ -24,8 +24,8 @@ public class MultiAngleFigure extends Figure {
     }
 
     @Override
-    public String getType() {
-        return "MultiAngleFigure";
+    public FigureType getType() {
+        return FigureType.MultiAngle;
     }
 
     @Override

@@ -31,8 +31,8 @@ public class Line extends Figure {
     }
 
     @Override
-    public String getType() {
-        return "Line";
+    public FigureType getType() {
+        return FigureType.Line;
     }
 
 
